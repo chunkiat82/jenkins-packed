@@ -1,9 +1,8 @@
-FROM openjdk:8u121-jdk-alpine
+FROM openjdk:8-jdk
 
-RUN apk add --no-cache git openssh-client curl unzip bash ttf-dejavu coreutils alpine-sdk
-RUN curl -L https://get.docker.com/builds/Linux/x86_64/docker-latest > /usr/bin/docker \
-  && chmod +x /usr/bin/docker
-  
+RUN apt-get update && apt-get install -y git curl build-essential docker
+RUN rm -rf /var/lib/apt/lists/*
+
 ARG user=jenkins
 ARG group=jenkins
 ARG uid=1000
@@ -17,8 +16,8 @@ ENV JENKINS_SLAVE_AGENT_PORT ${agent_port}
 # Jenkins is run with user `jenkins`, uid = 1000
 # If you bind mount a volume from the host or a data container, 
 # ensure you use the same uid
-RUN addgroup -g ${gid} ${group} \
-    && adduser -h "$JENKINS_HOME" -u ${uid} -G ${group} -s /bin/bash -D ${user}
+RUN groupadd -g ${gid} ${group} \
+    && useradd -d "$JENKINS_HOME" -u ${uid} -g ${gid} -m -s /bin/bash ${user}
 
 # Jenkins home directory is a volume, so configuration and build history 
 # can be persisted and survive image upgrades
@@ -40,10 +39,10 @@ COPY init.groovy /usr/share/jenkins/ref/init.groovy.d/tcp-slave-agent-port.groov
 
 # jenkins version being bundled in this docker image
 ARG JENKINS_VERSION
-ENV JENKINS_VERSION ${JENKINS_VERSION:-2.60.1}
+ENV JENKINS_VERSION ${JENKINS_VERSION:-2.60.2}
 
 # jenkins.war checksum, download will be validated using it
-ARG JENKINS_SHA=34fde424dde0e050738f5ad1e316d54f741c237bd380bd663a07f96147bb1390
+ARG JENKINS_SHA=14d0788d89be82958a46965de039a55813f9727bd4d0592dc77905976483ba95
 
 # Can be used to customize where jenkins.war get downloaded from
 ARG JENKINS_URL=https://repo.jenkins-ci.org/public/org/jenkins-ci/main/jenkins-war/${JENKINS_VERSION}/jenkins-war-${JENKINS_VERSION}.war
@@ -54,6 +53,7 @@ RUN curl -fsSL ${JENKINS_URL} -o /usr/share/jenkins/jenkins.war \
   && echo "${JENKINS_SHA}  /usr/share/jenkins/jenkins.war" | sha256sum -c -
 
 ENV JENKINS_UC https://updates.jenkins.io
+ENV JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental
 RUN chown -R ${user} "$JENKINS_HOME" /usr/share/jenkins/ref
 
 # for main web interface:
