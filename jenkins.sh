@@ -8,6 +8,7 @@ touch ~/.bashrc
 rm -rf ~/.nvm
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | bash
 cp ~/.bashrc /etc/profile.d/
+pip install --upgrade --user awscli
 # if `docker run` first argument start with `--` the user is passing jenkins launcher arguments
 if [[ $# -lt 1 ]] || [[ "$1" == "--"* ]]; then
 
