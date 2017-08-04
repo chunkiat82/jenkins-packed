@@ -1,6 +1,9 @@
 FROM openjdk:8-jdk
 
-RUN apt-get update && apt-get install -y git curl build-essential docker
+RUN curl -fsSL get.docker.com -o get-docker.sh
+RUN sh get-docker.sh
+RUN apt-get update && apt-get install -y git curl build-essential python-pip docker-ce python
+
 RUN rm -rf /var/lib/apt/lists/*
 
 ARG user=jenkins
@@ -55,6 +58,7 @@ RUN curl -fsSL ${JENKINS_URL} -o /usr/share/jenkins/jenkins.war \
 ENV JENKINS_UC https://updates.jenkins.io
 ENV JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental
 RUN chown -R ${user} "$JENKINS_HOME" /usr/share/jenkins/ref
+RUN chmod 777 -R /etc/profile.d
 
 # for main web interface:
 EXPOSE ${http_port}
@@ -70,7 +74,7 @@ COPY jenkins-support /usr/local/bin/jenkins-support
 COPY jenkins.sh /usr/local/bin/jenkins.sh
 ENTRYPOINT ["/bin/tini", "--", "/usr/local/bin/jenkins.sh"]
 
-RUN chmod 777 -R /etc/profile.d
+
 
 # from a derived Dockerfile, can use `RUN plugins.sh active.txt` to setup /usr/share/jenkins/ref/plugins from a support bundle
 COPY plugins.sh /usr/local/bin/plugins.sh
