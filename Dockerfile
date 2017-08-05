@@ -3,7 +3,8 @@ FROM openjdk:8-jdk
 RUN curl -fsSL get.docker.com -o get-docker.sh
 RUN sh get-docker.sh
 RUN apt-get update && apt-get install -y git curl build-essential python-pip docker-ce python
-
+RUN rm /etc/localtime
+RUN ln -s /usr/share/zoneinfo/Asia/Singapore /etc/localtime
 RUN rm -rf /var/lib/apt/lists/*
 
 ARG user=jenkins
